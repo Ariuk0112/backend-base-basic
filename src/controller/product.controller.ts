@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import {
+  createProductService,
   getProductByIdService,
   getProductLIstService,
+  updateProductService,
 } from "../service/product.service";
 import { decrypt, encrypt } from "../utils/encryption";
 import { generateToken } from "../utils/tokenHandler";
@@ -37,9 +39,52 @@ export const getProductDetailController = async (
 
 export const getProductListController = async (req: Request, res: Response) => {
   const result = await getProductLIstService();
-  const token = generateToken("1");
   return res.json({
     success: true,
-    token: token,
+    data: result
   });
 };
+
+
+export const updateProductController = async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const { name, price } = req.body
+  if (!id || !name || !price) {
+    return res.status(404).json({
+      success: false,
+      message: `zarmin ugugdul hooson baina`
+    })
+  }
+  const existingProduct = await getProductByIdService(parseInt(id))
+  if (!existingProduct) {
+    return res.status(404).json({
+      success: false,
+      message: `${id} - tai buteegdehuunii medeelel oldsonguie`
+    })
+  }
+  const updatedProduct = await updateProductService(parseInt(id), name, price)
+  return res.status(200).json({
+    success: true,
+    message: "Huselt amjilttai",
+    data: updatedProduct
+  })
+}
+
+
+export const createProductController = async (req: Request, res: Response) => {
+  const { name, price } = req.body
+  if (!name || !price) {
+    return res.status(404).json({
+      success: false,
+      message: `zarmin ugugdul hooson baina`
+    })
+  }
+  const newProduct = await createProductService(name, price)
+  return res.status(200).json({
+    success: true,
+    message: "Huselt amjilttai",
+    data: newProduct
+  })
+}
+
+
